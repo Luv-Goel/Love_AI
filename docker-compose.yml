@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  love_smith:
+    build:
+      context: ./love_smith
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8000" # Expose love_smith to host
+    environment:
+      - love_engine_URL=http://love_engine:4000
+    depends_on:
+      - love_engine
+    networks:
+      - ai-net
+
+  love_engine:
+    image: ghcr.io/berriai/love_engine:main-latest
+    ports:
+      - "4000:4000"
+    environment:
+      - STORE_MODEL_IN_DB=True
+    networks:
+      - ai-net
+    command: [ "--port", "4000" ]
+
+  searxng:
+    image: searxng/searxng:latest
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./searxng-docker/searxng:/etc/searxng
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8081/
+    networks:
+      - ai-net
+
+  love_crawler:
+    build:
+      context: ./love_crawler
+      dockerfile: Dockerfile
+    ports:
+      - "11225:11225"
+    networks:
+      - ai-net
+
+networks:
+  ai-net:
+    driver: bridge

@@ -1,0 +1,12 @@
+{
+    "include": ["love_engine"],
+    "ignore": [],
+    "exclude": ["**/node_modules", "**/__pycache__", "love_engine/types/utils.py", "love_engine/proxy/_types.py"],
+    "pythonVersion": "3.12",
+    "typeCheckingMode": "strict",
+    "enableTypeIgnoreComments": false,
+    "reportMissingImports": false,
+    "reportPrivateImportUsage": false,
+    "reportExplicitAny": "error",
+    "reportAny": "error"
+}

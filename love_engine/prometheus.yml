@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'love_engine'
+    static_configs:
+      - targets: ['love_engine:4000']  # Assuming love_engine exposes metrics at port 4000

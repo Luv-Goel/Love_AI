@@ -1,0 +1,82 @@
+Metadata-Version: 2.4
+Name: Crawl4AI
+Version: 0.9.0
+Summary: 🚀🤖 Crawl4AI: Open-source LLM Friendly Web Crawler & scraper
+Home-page: https://github.com/unclecode/love_crawler
+Author: Unclecode
+Author-email: Unclecode <unclecode@kidocode.com>
+License-Expression: Apache-2.0
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiofiles>=24.1.0
+Requires-Dist: aiohttp>=3.11.11
+Requires-Dist: aiosqlite~=0.20
+Requires-Dist: anyio>=4.0.0
+Requires-Dist: lxml~=5.3
+Requires-Dist: unclecode-litellm==1.81.13
+Requires-Dist: numpy<3,>=1.26.0
+Requires-Dist: pillow>=10.4
+Requires-Dist: playwright>=1.49.0
+Requires-Dist: patchright>=1.49.0
+Requires-Dist: python-dotenv~=1.0
+Requires-Dist: requests~=2.26
+Requires-Dist: beautifulsoup4~=4.12
+Requires-Dist: playwright-stealth>=2.0.0
+Requires-Dist: xxhash~=3.4
+Requires-Dist: rank-bm25~=0.2
+Requires-Dist: snowballstemmer~=2.2
+Requires-Dist: pydantic>=2.10
+Requires-Dist: pyOpenSSL>=25.3.0
+Requires-Dist: psutil>=6.1.1
+Requires-Dist: PyYAML>=6.0
+Requires-Dist: nltk>=3.9.1
+Requires-Dist: rich>=13.9.4
+Requires-Dist: cssselect>=1.2.0
+Requires-Dist: httpx>=0.27.2
+Requires-Dist: httpx[http2]>=0.27.2
+Requires-Dist: fake-useragent>=2.0.3
+Requires-Dist: click>=8.1.7
+Requires-Dist: chardet>=5.2.0
+Requires-Dist: brotli>=1.1.0
+Requires-Dist: humanize>=4.10.0
+Requires-Dist: lark>=1.2.2
+Requires-Dist: alphashape>=1.3.1
+Requires-Dist: shapely>=2.0.0
+Provides-Extra: pdf
+Requires-Dist: pypdf; extra == "pdf"
+Provides-Extra: torch
+Requires-Dist: torch; extra == "torch"
+Requires-Dist: nltk; extra == "torch"
+Requires-Dist: scikit-learn; extra == "torch"
+Provides-Extra: transformer
+Requires-Dist: transformers; extra == "transformer"
+Requires-Dist: tokenizers; extra == "transformer"
+Requires-Dist: sentence-transformers; extra == "transformer"
+Provides-Extra: cosine
+Requires-Dist: torch; extra == "cosine"
+Requires-Dist: transformers; extra == "cosine"
+Requires-Dist: nltk; extra == "cosine"
+Requires-Dist: sentence-transformers; extra == "cosine"
+Provides-Extra: sync
+Requires-Dist: selenium; extra == "sync"
+Provides-Extra: all
+Requires-Dist: pypdf; extra == "all"
+Requires-Dist: torch; extra == "all"
+Requires-Dist: nltk; extra == "all"
+Requires-Dist: scikit-learn; extra == "all"
+Requires-Dist: transformers; extra == "all"
+Requires-Dist: tokenizers; extra == "all"
+Requires-Dist: sentence-transformers; extra == "all"
+Requires-Dist: selenium; extra == "all"
+Dynamic: author
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-python

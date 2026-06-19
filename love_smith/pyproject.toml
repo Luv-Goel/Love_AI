@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "love_smith-guardrails"
+version = "0.7.5"
+description = "A reliability layer for self-hosted LLM tool-calling. Guardrails, context management, and backend adapters for multi-step agentic workflows."
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{name = "Antoine Zambelli"}]
+readme = "README.md"
+keywords = ["llm", "tool-calling", "agents", "guardrails", "local-models", "ollama", "llama-cpp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Typing :: Typed",
+]
+dependencies = [
+    "pydantic>=2.0",
+    "httpx>=0.27",
+]
+
+[project.urls]
+Homepage = "https://github.com/antoinezambelli/love_smith"
+Repository = "https://github.com/antoinezambelli/love_smith"
+Documentation = "https://github.com/antoinezambelli/love_smith/tree/main/docs"
+Changelog = "https://github.com/antoinezambelli/love_smith/blob/main/CHANGELOG.md"
+
+[project.scripts]
+love_smith-proxy = "love_smith.proxy.__main__:main"
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40"]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "anthropic>=0.40",
+    "mpmath",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/love_smith"]
+
+[tool.hatch.build.targets.sdist]
+# Without scoping, hatchling sweeps the whole tree into the sdist — pulling in
+# the LFS eval datasets (~112 MB) and the eval dashboard's node_modules (~97 MB,
+# incl. platform .exe/.node binaries). Ship only what builds + tests from source.
+exclude = [
+    "eval_results*.jsonl",
+    "tests/eval/dashboard/node_modules",
+    "tests/eval/dashboard/dist",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests that require a running LLM backend (deselect with '-m \"not integration\"')",
+]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["love_smith"]
+
+[tool.coverage.report]
+omit = [
+    # Integration-only: lifecycle orchestration requiring real backends/threads.
+    # Covered by eval harness runs, not unit tests.
+    "src/love_smith/proxy/proxy.py",
+    "src/love_smith/proxy/__main__.py",
+]

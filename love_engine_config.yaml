@@ -1,0 +1,34 @@
+model_list:
+  # ── VIRTUAL MODEL: all_high (Primary) ──
+  - model_name: all_high
+    love_engine_params:
+      model: openai/meta/llama-3.1-70b-instruct
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+
+  # ── VIRTUAL MODEL: all_high (Fallback) ──
+  - model_name: all_high-fallback
+    love_engine_params:
+      model: openai/meta/llama-3.1-8b-instruct
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+
+  # ── VIRTUAL MODEL: all_low ──
+  - model_name: all_low
+    love_engine_params:
+      model: openai/google/gemma-2-2b-it
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+
+router_settings:
+  # Retry Configuration (3 Attempts max)
+  num_retries: 3
+  timeout: 60
+  
+  # Jail / Cooldown Settings (Ban backends with too many timeouts/errors)
+  allowed_fails: 3
+  cooldown_time: 1800 # Jail for 30 minutes
+  
+  # Waterfall Fallback Chains
+  fallbacks:
+    - {"all_high": ["all_high-fallback"]}

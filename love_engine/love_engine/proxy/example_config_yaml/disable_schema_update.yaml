@@ -1,0 +1,17 @@
+model_list:
+  - model_name: fake-openai-endpoint
+    love_engine_params:
+      model: openai/fake
+      api_key: fake-key
+      api_base: os.environ/FAKE_OPENAI_API_BASE
+  - model_name: gpt-4
+    love_engine_params:
+      model: openai/gpt-4
+      api_key: fake-key
+      api_base: os.environ/FAKE_OPENAI_API_BASE
+
+love_engine_settings:
+  callbacks: ["gcs_bucket"]
+
+general_settings:
+  disable_prisma_schema_update: true

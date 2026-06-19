@@ -1,0 +1,48 @@
+from datetime import timedelta
+
+from fastapi import HTTPException
+
+import love_engine
+from love_engine.proxy._types import CommonProxyErrors, InvitationNew, UserAPIKeyAuth
+from love_engine.repositories.table_repositories import InvitationLinkRepository
+
+
+async def create_invitation_for_user(
+    data: InvitationNew,
+    user_api_key_dict: UserAPIKeyAuth,
+):
+    """
+    Create an invitation for the user to onboard to LoveEngine Admin UI.
+    """
+    from love_engine.proxy.proxy_server import love_engine_proxy_admin_name, prisma_client
+
+    if prisma_client is None:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": CommonProxyErrors.db_not_connected_error.value},
+        )
+
+    current_time = love_engine.utils.get_utc_datetime()
+    expires_at = current_time + timedelta(days=7)
+
+    try:
+        response = await InvitationLinkRepository(prisma_client).table.create(
+            data={
+                "user_id": data.user_id,
+                "created_at": current_time,
+                "expires_at": expires_at,
+                "created_by": user_api_key_dict.user_id or love_engine_proxy_admin_name,
+                "updated_at": current_time,
+                "updated_by": user_api_key_dict.user_id or love_engine_proxy_admin_name,
+            }  # type: ignore
+        )
+        return response
+    except Exception as e:
+        if "Foreign key constraint failed on the field" in str(e):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "User id does not exist in 'LOVE_ENGINE_UserTable'. Fix this by creating user via `/user/new`."
+                },
+            )
+        raise HTTPException(status_code=500, detail={"error": str(e)})

@@ -1,0 +1,27 @@
+# Standard python ignores
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Log files
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files
+.env
+.env.*
+
+# Large binaries/indexes
+*.tar.gz
+love_index/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,15 @@
+model_list:
+  - model_name: fake-openai-endpoint
+    love_engine_params:
+      model: openai/gpt-5-mini
+      api_key: fake-key
+      api_base: os.environ/FAKE_OPENAI_API_BASE
+
+general_settings:
+  use_redis_transaction_buffer: true
+
+love_engine_settings:
+  cache: True
+  cache_params:
+    type: redis
+    supported_call_types: []

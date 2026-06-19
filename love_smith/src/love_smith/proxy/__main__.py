@@ -1,0 +1,163 @@
+"""CLI entry point: python -m love_smith.proxy"""
+
+from __future__ import annotations
+
+import argparse
+import logging
+import signal
+import sys
+import time
+
+from love_smith.core.reasoning import DEFAULT_REASONING_REPLAY, REASONING_REPLAY_CHOICES
+from love_smith.proxy.proxy import ProxyServer
+from love_smith.server import BudgetMode
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="love_smith proxy — OpenAI-compatible proxy with guardrails",
+    )
+
+    # Mode selection. External mode uses --backend-url; managed mode uses
+    # --backend (+ an identity flag). For an external vLLM server, pass both
+    # --backend-url and --backend vllm so the proxy selects the vLLM adapter.
+    # ProxyServer enforces "exactly one of url/backend" and the per-backend rules.
+    parser.add_argument(
+        "--backend-url",
+        help="URL of an externally managed backend (external mode)",
+    )
+    parser.add_argument(
+        "--backend",
+        choices=["llamaserver", "llamafile", "ollama", "vllm"],
+        help="Backend type. Required for managed mode; in external mode use "
+             "'vllm' to select the vLLM adapter (default adapter is llama.cpp).",
+    )
+
+    # Managed mode options
+    parser.add_argument("--model", help="Model name (required for ollama)")
+    parser.add_argument("--gguf", help="Path to GGUF file (llamaserver/llamafile)")
+    parser.add_argument("--model-path", help="Model directory or HF repo id (vllm, managed mode)")
+    parser.add_argument("--backend-port", type=int, default=8080, help="Backend port (default: 8080)")
+    parser.add_argument(
+        "--budget-mode",
+        choices=["backend", "manual", "love_smith-full", "love_smith-fast"],
+        default="backend",
+        help="Context budget mode (default: backend)",
+    )
+    parser.add_argument("--budget-tokens", type=int, help="Manual token budget")
+    parser.add_argument("--extra-flags", nargs="*", help="Additional backend CLI flags")
+    parser.add_argument(
+        "--backend-protocol",
+        choices=["openai", "anthropic"],
+        default="openai",
+        help="Wire format of the external backend (default: openai). Use "
+             "'anthropic' for Anthropic-shape downstreams (LoveEngine /v1/messages, "
+             "real Anthropic API, self-hosted Anthropic proxy). External mode only.",
+    )
+
+    # Proxy options
+    parser.add_argument("--host", default="127.0.0.1", help="Proxy listen host (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8081, help="Proxy listen port (default: 8081)")
+    parser.add_argument("--serialize", action="store_true", default=None, help="Force request serialization")
+    parser.add_argument("--no-serialize", action="store_true", help="Disable request serialization")
+    parser.add_argument("--max-retries", type=int, default=3, help="Max retries per request (default: 3)")
+    parser.add_argument("--max-tool-errors", type=int, default=2, help="Max consecutive tool-call errors per request (default: 2)")
+    parser.add_argument(
+        "--backend-timeout",
+        type=float,
+        default=300.0,
+        help="Backend response timeout in seconds (default: 300)",
+    )
+    parser.add_argument("--no-rescue", action="store_true", help="Disable rescue parsing")
+    parser.add_argument(
+        "--backend-capability",
+        choices=["native", "prompt"],
+        default="native",
+        help="Tool-calling protocol for the backend (default: native). "
+             "'native' forwards the client's tools verbatim to a "
+             "function-calling-capable backend. 'prompt' opts into "
+             "prompt-injection for non-FC llama.cpp/llamafile backends "
+             "(strips tools into the prompt, parses the JSON call back). "
+             "Frozen at startup — never probed or switched mid-stream.",
+    )
+    parser.add_argument(
+        "--inject-respond-tool",
+        action="store_true",
+        help="Inject love_smith's synthetic respond() tool when the client sends "
+             "tools (keeps small models in tool-calling mode). Default off.",
+    )
+    parser.add_argument(
+        "--reasoning-replay",
+        choices=REASONING_REPLAY_CHOICES,
+        default=DEFAULT_REASONING_REPLAY,
+        help="How much captured reasoning to replay to the backend "
+             "(default: none).",
+    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose logging")
+
+    args = parser.parse_args()
+
+    # Logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+    # Resolve serialize flag
+    serialize = None
+    if args.serialize:
+        serialize = True
+    elif args.no_serialize:
+        serialize = False
+
+    proxy = ProxyServer(
+        backend_url=args.backend_url,
+        backend=args.backend,
+        model=args.model,
+        gguf=args.gguf,
+        model_path=args.model_path,
+        backend_port=args.backend_port,
+        budget_mode=BudgetMode(args.budget_mode),
+        budget_tokens=args.budget_tokens,
+        extra_flags=args.extra_flags,
+        host=args.host,
+        port=args.port,
+        serialize=serialize,
+        max_retries=args.max_retries,
+        max_tool_errors=args.max_tool_errors,
+        rescue_enabled=not args.no_rescue,
+        backend_capability=args.backend_capability,
+        inject_respond_tool=args.inject_respond_tool,
+        backend_protocol=args.backend_protocol,
+        backend_timeout=args.backend_timeout,
+        reasoning_replay=args.reasoning_replay,
+    )
+
+    def _shutdown(sig: int, _frame: object) -> None:
+        print("\nShutting down...")
+        proxy.stop()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, _shutdown)
+    if hasattr(signal, "SIGTERM"):
+        signal.signal(signal.SIGTERM, _shutdown)
+
+    proxy.start()
+    print(f"Love AI Router running at {proxy.url}")
+    print(f"  Point your client at {proxy.url}/v1/chat/completions")
+    print("  Ctrl+C to stop")
+
+    # Block main thread. Use a timed loop so Python can deliver
+    # signals between iterations (Event.wait() without timeout
+    # blocks signal handling on Windows).
+    try:
+        while True:
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        _shutdown(0, None)
+
+
+if __name__ == "__main__":
+    main()
