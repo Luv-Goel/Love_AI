@@ -277,9 +277,15 @@ def delete_rate_limit(limit_type: str, entity_id: int, limitT: str, ws: str):
 
 from gateway_interceptor import handle_reverse_proxy
 
-# Note: The proxy forwarder must come AFTER all other routes unless it's strictly matching "v1"
-@app.api_route("/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"])
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"])
 async def reverse_proxy(request: Request, path: str):
+    if path.startswith("admin") or path == "":
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    allowed_prefixes = ("v1/", "api/generate", "chat/completions", "responses")
+    if not any(path.startswith(p) for p in allowed_prefixes):
+        raise HTTPException(status_code=404, detail="Not Found")
+
     v_key = verify_api_key(request.headers.get("Authorization", ""))
     return await handle_reverse_proxy(request, path, love_smith_URL, v_key)
 
