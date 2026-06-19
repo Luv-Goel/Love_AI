@@ -71,7 +71,7 @@ Love AI goes beyond just intercepting standard OpenAI requests. The **Love Gate*
 - **OpenAI-Compatible (`/v1/chat/completions`)**: Fully supported.
 - **Anthropic Native (`/v1/messages`)**: Intercepted and mapped automatically.
 - **Ollama Native (`/api/generate`)**: Intercepted and routed natively.
-- **Generic Completion endpoints (`/chat/completions`, `/responses`)**: Supported.
+- **Generic Completion endpoints (`/chat/completions`, `/responses`)**: Intercepted and mapped seamlessly.
 
 ### 🔑 Virtual Key Management
 Every project receives a `sk-loveai-*` virtual key. Real vendor credentials (NVIDIA, Anthropic, OpenAI, etc.) are stored locally and **never exposed**. Each virtual key carries:

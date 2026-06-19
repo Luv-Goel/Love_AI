@@ -20,14 +20,14 @@ WEB_SEARCH_TOOL = {
 }
 
 async def handle_reverse_proxy(request: Request, path: str, love_smith_url: str, virtual_key: dict):
-    url = f"{love_smith_url}/v1/{path}"
+    url = f"{love_smith_url}/{path}"
     body = await request.body()
     
     headers = dict(request.headers)
     headers.pop("host", None)
     
     # 1. Evaluate Capability Policy
-    is_chat = (path == "chat/completions" or path == "messages")
+    is_chat = path.endswith("chat/completions") or path.endswith("messages") or path.endswith("api/generate") or path.endswith("responses")
     is_stream = False
     req_data = None
     policy = "BYPASS"
